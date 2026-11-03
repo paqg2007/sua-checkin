@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registro de huéspedes, Fagua</title>
+<link rel="stylesheet" href="../styles.css">
+<script>window.PROP = { slug: "fagua", name: "Fagua", address: "Calle 9 # 4-84, apto 101, La Candelaria, Bogotá" };</script>
+</head>
+<body>
+<header>
+<h1>Fagua</h1>
+<p>Calle 9 # 4-84, apto 101, La Candelaria, Bogotá</p>
+<p>La Candelaria, Bogotá, Colombia</p>
+
+</header>
+<main>
+<div class="card">
+<p>Por ley colombiana, todo alojamiento turístico debe registrar a sus huéspedes en la <strong>TRA</strong> (Tarjeta de Registro de Alojamiento) y, si son extranjeros, en el <strong>SIRE</strong> (Migración Colombia, ingreso y salida). Este formato recoge los datos necesarios para ambos registros.</p>
+<p class="small">By Colombian law, all tourist lodging must register guests in the TRA, and foreign guests also in the SIRE (Migration Colombia, entry and exit). This form collects the data needed for both.</p>
+</div>
+
+<form id="checkin-form" class="card">
+<h2>1. Tu estadía / Your stay</h2>
+<div class="row">
+<label>Fecha de llegada / Arrival date<input type="date" id="llegada" required></label>
+<label>Fecha de salida / Departure date<input type="date" id="salida" required></label>
+</div>
+<label>Número total de huéspedes, incluyéndote / Total guests, including you<input type="number" id="num-huespedes" min="1" value="1" required></label>
+
+<h2>2. Huésped principal / Main guest</h2>
+<div class="row">
+<label>Nombres / First names<input id="main-nombres" required></label>
+<label>Apellidos / Last names<input id="main-apellidos" required></label>
+</div>
+<div class="row">
+<label>Tipo de documento / Document type<select id="main-tipo">
+<option>Cédula de ciudadanía</option><option>Cédula de extranjería</option>
+<option>Pasaporte</option><option>PEP</option><option>Otro</option></select></label>
+<label>Número de documento / Document number<input id="main-doc" required></label>
+</div>
+<label>Nacionalidad / Nationality<input id="main-nac" required placeholder="Ejemplo: Colombia, Estados Unidos, Francia"></label>
+<label>¿Eres ciudadano colombiano? / Are you a Colombian citizen?</label>
+<div class="radio">
+<label><input type="radio" name="main-colombiano" value="si" checked> Sí / Yes</label>
+<label><input type="radio" name="main-colombiano" value="no"> No</label>
+</div>
+<div id="sire-main" class="sire-box">
+<p><strong>Como eres extranjero, también se reportará tu ingreso y salida en el SIRE</strong> de Migración Colombia. Tu dirección en Colombia para este reporte es este apartamento.</p>
+</div>
+
+<h2>3. Acompañantes / Companions</h2>
+<p class="small">Agrega a cada persona que se hospeda contigo, incluyendo menores de edad.</p>
+<div id="companions"></div>
+<button type="button" class="add-btn" id="add-companion">+ Agregar acompañante / Add companion</button>
+
+<h2>4. Contacto / Contact</h2>
+<div class="row">
+<label>Correo electrónico / Email<input type="email" id="email" required></label>
+<label>Teléfono o WhatsApp / Phone or WhatsApp<input id="telefono" required></label>
+</div>
+
+<h2>5. Autorización / Consent</h2>
+<label class="consent"><input type="checkbox" id="consent" required>
+<span>Autorizo a Sua Houses a tratar mis datos personales y los de mis acompañantes únicamente para el registro obligatorio en la TRA y el SIRE, según la Ley 1581 de 2012.</span></label>
+
+<p id="report-hint" class="small"></p>
+<p id="form-error" class="error"></p>
+<button type="submit" class="submit-btn">Enviar registro / Send check in</button>
+</form>
+
+<div id="result" class="card">
+<h2>Registro recibido / Check in received</h2>
+<div id="result-summary"></div>
+<a id="wa-link" class="wa-btn" href="#" target="_blank" rel="noopener">Enviar por WhatsApp al anfitrión</a>
+<button type="button" class="dl-btn" id="dl-csv">Descargar registro (CSV)</button>
+<p class="small">Sua Houses, La Candelaria, Bogotá, Colombia.</p>
+</div>
+</main>
+<script src="../checkin.js"></script>
+</body>
+</html>
