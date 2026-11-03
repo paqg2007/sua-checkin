@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: sua-tra
+    env: python
+    region: ohio
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python tra_server.py
+    envVars:
+      - key: RNT_XIA_XUE
+        value: "110692"
+      - key: RNT_IECHIE
+        value: "295681"
+      - key: RNT_CENTRICO19
+        value: "145101"
+      - key: TRA_TOKEN_XIA_XUE
+        sync: false
+      - key: TRA_TOKEN_IECHIE
+        sync: false
+      - key: TRA_TOKEN_CENTRICO19
+        sync: false
