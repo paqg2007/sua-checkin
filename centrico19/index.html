@@ -11,9 +11,8 @@
 <header>
 <h1>Céntrico19, Industrial Loft</h1>
 <p>Centro de Bogotá</p>
-<p>RNT 145101</p>
 <p>Centro de Bogotá, Bogotá, Colombia</p>
-
+<p>RNT 145101</p>
 </header>
 <main>
 <div class="card">
@@ -26,6 +25,10 @@
 <div class="row">
 <label>Fecha de llegada / Arrival date<input type="date" id="llegada" required></label>
 <label>Fecha de salida / Departure date<input type="date" id="salida" required></label>
+</div>
+<div class="row">
+<label>Hora aproximada de llegada / Approximate arrival time<input type="time" id="hora-llegada" value="15:00"></label>
+<label>Hora aproximada de salida / Approximate departure time<input type="time" id="hora-salida" value="11:00"></label>
 </div>
 <label>Número total de huéspedes, incluyéndote / Total guests, including you<input type="number" id="num-huespedes" min="1" value="1" required></label>
 
@@ -49,6 +52,10 @@
 <div id="sire-main" class="sire-box">
 <p><strong>Como eres extranjero, también se reportará tu ingreso y salida en el SIRE</strong> de Migración Colombia. Tu dirección en Colombia para este reporte es este apartamento.</p>
 </div>
+<label>Ciudad de residencia / City of residence<input id="main-residencia" required placeholder="Ciudad donde vives"></label>
+<label>Ciudad de procedencia / City you are traveling from<input id="main-procedencia" required placeholder="Ciudad desde donde viajas"></label>
+<label>Motivo del viaje / Purpose of trip<select id="main-motivo">
+<option>Turismo</option><option>Trabajo</option><option>Visita familiar</option><option>Otro</option></select></label>
 
 <h2>3. Acompañantes / Companions</h2>
 <p class="small">Agrega a cada persona que se hospeda contigo, incluyendo menores de edad.</p>
