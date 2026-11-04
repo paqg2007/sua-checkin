@@ -5,7 +5,7 @@
 // WhatsApp al anfitrión y descarga en CSV.
 (function () {
   var HOST_WHATSAPP = "573152199862";
-  var BACKEND_URL = ""; // Al desplegar el backend, poner aquí su URL, sin barra final.
+  var BACKEND_URL = "https://sua-tra-08h8.onrender.com"; // Al desplegar el backend, poner aquí su URL, sin barra final.
   var form = document.getElementById("checkin-form");
   if (!form) return;
 
