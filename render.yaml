@@ -20,3 +20,9 @@ services:
         sync: false
       - key: TRA_TOKEN_CENTRICO19
         sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: NOTIFY_TO
+        sync: false

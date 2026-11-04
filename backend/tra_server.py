@@ -12,6 +12,15 @@ Configuración (variables de entorno, nunca escribir tokens en el código):
   TRA_TOKEN_XIA_XUE, TRA_TOKEN_IECHIE, TRA_TOKEN_CENTRICO19
   RNT_XIA_XUE, RNT_IECHIE, RNT_CENTRICO19
 
+Notificación al anfitrión (opcional):
+  SMTP_USER, SMTP_PASS, NOTIFY_TO (opcional, por defecto SMTP_USER)
+  Con SMTP_USER y SMTP_PASS configurados, cada registro recibido envía
+  un correo al anfitrión con apartamento, huésped principal, fechas,
+  cantidad de huéspedes y resultado TRA, sin números de documento.
+  Si el correo falla, el registro y la transmisión TRA siguen igual:
+  el aviso nunca bloquea la respuesta al huésped. Sin esas variables,
+  simplemente no se envía ningún correo.
+
 Despliegue gratis sugerido: Render o Railway, igual que el backend de Bold.
   pip install -r requirements.txt
   TRA_TOKEN_XIA_XUE=... RNT_XIA_XUE=110692 python tra_server.py
@@ -31,7 +40,9 @@ hasta que se tramite la certificación API ante Migración Colombia.
 
 import json
 import os
+import smtplib
 from datetime import datetime
+from email.message import EmailMessage
 
 import requests
 from flask import Flask, jsonify, request
@@ -95,10 +106,56 @@ def _send(url, token, payload):
     return resp.status_code
 
 
+def _notify(stay, guests, tra_text):
+    """Avisa por correo al anfitrión de cada registro recibido.
+
+    Solo se envía si SMTP_USER y SMTP_PASS están configurados; si no,
+    se omite en silencio y el registro sigue su curso normal. Un fallo
+    del correo nunca bloquea la respuesta al huésped. El correo no
+    incluye números de documento.
+    """
+    smtp_user = os.environ.get("SMTP_USER", "")
+    smtp_pass = os.environ.get("SMTP_PASS", "")
+    if not smtp_user or not smtp_pass:
+        return False
+    notify_to = os.environ.get("NOTIFY_TO", "") or smtp_user
+    main = next((g for g in guests if g.get("rol") == "Principal"), guests[0] if guests else {})
+    nombre = (main.get("nombre", "") + " " + main.get("apellido", "")).strip() or "sin nombre"
+    prop = stay.get("nombre_propiedad", "") or stay.get("propiedad", "")
+    llegada = (stay.get("llegada", "") + " " + stay.get("hora_llegada", "")).strip()
+    salida = (stay.get("salida", "") + " " + stay.get("hora_salida", "")).strip()
+    msg = EmailMessage()
+    msg["From"] = smtp_user
+    msg["To"] = notify_to
+    msg["Subject"] = "Nuevo registro TRA: " + nombre + " · " + prop + " · " + stay.get("llegada", "")
+    msg.set_content(
+        "Nuevo registro de huésped en el formato de check-in.\n\n"
+        "Apartamento: " + prop + "\n"
+        "Huésped principal: " + nombre + "\n"
+        "Llegada: " + llegada + "\n"
+        "Salida: " + salida + "\n"
+        "Huéspedes: " + str(len(guests)) + "\n"
+        "Transmisión TRA: " + tra_text + "\n\n"
+        "Aviso automático del sistema de registro Sua Houses. "
+        "El registro oficial queda en MinCIT. "
+        "Este correo no incluye números de documento."
+    )
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as server:
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.send_message(msg)
+        return True
+    except Exception as exc:  # noqa: BLE001 - el aviso nunca bloquea el registro
+        print("aviso por correo falló: " + type(exc).__name__, flush=True)
+        return False
+
+
 @app.route("/api/health", methods=["GET"])
 def health():
     ready = [slug for slug in PROPERTIES if _token_and_rnt(slug)[0]]
-    return jsonify({"ok": True, "propiedades_con_token": ready})
+    notif = bool(os.environ.get("SMTP_USER") and os.environ.get("SMTP_PASS"))
+    return jsonify({"ok": True, "propiedades_con_token": ready, "notificaciones_configuradas": notif})
 
 
 @app.route("/api/checkin", methods=["POST"])
@@ -118,27 +175,26 @@ def checkin():
 
     token, rnt = _token_and_rnt(slug)
     if not token:
-        return jsonify({
-            "ok": True,
-            "tra": "guardado, pendiente de token para " + slug,
-        })
-
-    main = next((g for g in guests if g.get("rol") == "Principal"), guests[0] if guests else {})
-    companions = [g for g in guests if g.get("rol") != "Principal"]
-    results = []
-    try:
-        code = _send(TRA_ONE, token, _tra_payload_main(stay, main, rnt, len(companions)))
-        results.append("principal: " + str(code))
-    except Exception as exc:  # noqa: BLE001 - se reporta el fallo sin exponer el token
-        results.append("principal: error " + type(exc).__name__)
-    for comp in companions:
+        tra_text = "guardado, pendiente de token para " + slug
+    else:
+        main = next((g for g in guests if g.get("rol") == "Principal"), guests[0] if guests else {})
+        companions = [g for g in guests if g.get("rol") != "Principal"]
+        results = []
         try:
-            code = _send(TRA_TWO, token, _tra_payload_companion(stay, comp, main, rnt))
-            results.append("acompañante " + comp.get("nombre", "") + ": " + str(code))
-        except Exception as exc:  # noqa: BLE001
-            results.append("acompañante " + comp.get("nombre", "") + ": error " + type(exc).__name__)
+            code = _send(TRA_ONE, token, _tra_payload_main(stay, main, rnt, len(companions)))
+            results.append("principal: " + str(code))
+        except Exception as exc:  # noqa: BLE001 - se reporta el fallo sin exponer el token
+            results.append("principal: error " + type(exc).__name__)
+        for comp in companions:
+            try:
+                code = _send(TRA_TWO, token, _tra_payload_companion(stay, comp, main, rnt))
+                results.append("acompañante " + comp.get("nombre", "") + ": " + str(code))
+            except Exception as exc:  # noqa: BLE001
+                results.append("acompañante " + comp.get("nombre", "") + ": error " + type(exc).__name__)
+        tra_text = ", ".join(results)
 
-    return jsonify({"ok": True, "tra": ", ".join(results)})
+    _notify(stay, guests, tra_text)
+    return jsonify({"ok": True, "tra": tra_text})
 
 
 if __name__ == "__main__":
