@@ -159,8 +159,10 @@
     result.scrollIntoView({ behavior: "smooth" });
   }
 
+  var sending = false;
   form.addEventListener("submit", function (e) {
     e.preventDefault();
+    if (sending) return;
     var err = document.getElementById("form-error");
     err.textContent = "";
     if (!document.getElementById("consent").checked) {
@@ -177,18 +179,45 @@
       showResult(stay, guests, "");
       return;
     }
-    fetch(BACKEND_URL + "/api/checkin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ stay: stay, guests: guests })
-    }).then(function (r) { return r.json(); }).then(function (data) {
-      var note = "";
-      if (data && data.tra) {
-        note = "Transmisión TRA: " + data.tra;
-      }
-      showResult(stay, guests, note);
-    }).catch(function () {
-      showResult(stay, guests, "No se pudo contactar al servidor de registro en este momento. Tu registro quedó listo para enviar por WhatsApp.");
-    });
+    sending = true;
+    var btn = form.querySelector("button[type=\"submit\"]");
+    var btnText = btn ? btn.textContent : "";
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Enviando... / Sending...";
+    }
+    var tries = 0;
+    function attempt() {
+      tries++;
+      fetch(BACKEND_URL + "/api/checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stay: stay, guests: guests })
+      }).then(function (r) { return r.json(); }).then(function (data) {
+        sending = false;
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = btnText;
+        }
+        var note = "";
+        if (data && data.tra) {
+          note = "Transmisión TRA: " + data.tra;
+        }
+        showResult(stay, guests, note);
+      }).catch(function () {
+        if (tries < 2) {
+          err.textContent = "El servidor está despertando, reintentando el envío... / The server is waking up, retrying...";
+          setTimeout(attempt, 3000);
+          return;
+        }
+        sending = false;
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = btnText;
+        }
+        showResult(stay, guests, "No se pudo contactar al servidor de registro en este momento. Tu registro quedó listo para enviar por WhatsApp.");
+      });
+    }
+    attempt();
   });
 })();
