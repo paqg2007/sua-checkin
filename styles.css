@@ -31,6 +31,8 @@ input:focus, select:focus { outline: 2px solid #b45309; border-color: #b45309; }
 .dl-btn { display: block; width: 100%; background: #fff; border: 1px solid #1f2937; color: #1f2937; border-radius: 10px; padding: 12px; font-size: 16px; cursor: pointer; margin-top: 10px; }
 .prop-grid { display: grid; gap: 14px; }
 .prop-card { display: block; background: #fff; border: 1px solid #e5e0d5; border-radius: 12px; padding: 20px; text-decoration: none; color: #222; }
+.prop-logo { display: block; width: 64px; height: 64px; border-radius: 50%; background: #fff; object-fit: cover; margin: 0 0 10px; }
+header .prop-logo { width: 72px; height: 72px; margin: 0 0 12px; }
 .prop-card h2 { margin: 0 0 4px; }
 .prop-card p { margin: 0; color: #6b7280; }
 .prop-card:hover { border-color: #b45309; }
